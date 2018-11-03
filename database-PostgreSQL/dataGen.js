@@ -8,6 +8,8 @@ let sequelize = new Sequelize('postgres', 'nathan', 'student', {
 });
 
 function genData() {
+  // Normally I would encrypt the password but for the time being it is fine
+  sequelize.query('CREATE TABLE users (user_id SERIAL PRIMARY KEY, username VARCHAR UNIQUE, user_email VARCHAR UNIQUE, user_password VARCHAR);')
   sequelize.query('CREATE TABLE products (id SERIAL PRIMARY KEY, short_desc VARCHAR, image_url VARCHAR, rating DECIMAL, reviews INTEGER, price VARCHAR, category VARCHAR(255), purchase_url VARCHAR);')
   .then(data => {
     for (let i = 0; i < urls.length; i++) {
