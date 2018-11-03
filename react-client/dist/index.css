@@ -1,3 +1,19 @@
+.checkout {
+  display: flex;
+  flex-flow: column;
+  width: 500px;
+}
+
+.checkout-form {
+  display: flex;
+  flex-flow: column;
+  width: 250px;
+}
+
+.hidden {
+  display: none;
+}
+
 .item {
   width: 160px;
   vertical-align: top;
