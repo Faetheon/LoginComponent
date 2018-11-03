@@ -4,6 +4,7 @@ var DIST_DIR = path.join(__dirname, '/react-client/dist');
 
 module.exports = {
   entry: `${SRC_DIR}/index.jsx`,
+  mode: 'development',
   module: {
     rules: [{
       test: /\.jsx?/,
@@ -20,5 +21,8 @@ module.exports = {
   output: {
     filename: 'bundle.js',
     path: DIST_DIR
+  },
+  watchOptions: {
+    poll: true
   }
 };
