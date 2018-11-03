@@ -1,3 +1,4 @@
 node_modules
 config
 server/models
+react-client/dist/bundle.js

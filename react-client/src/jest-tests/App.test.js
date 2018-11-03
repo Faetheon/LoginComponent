@@ -3,7 +3,6 @@ import { mount, shallow, configure } from 'enzyme';
 import App from '../components/App.jsx';
 import Adapter from 'enzyme-adapter-react-16';
 import {fetch as fetchPolyfill} from 'whatwg-fetch';
-const fetch = require('node-fetch');
 
 configure({adapter: new Adapter()});
 let component;
@@ -42,7 +41,7 @@ test('It tests that itemStart is being decreased when it is greater than five an
   expect(component.state().itemStart).toBe(1);
 });
 
-test('It tests that itemStart increases when there are more than five items and the right arrow button was clicked', () => {
+test('It tests that itemStart increases by five when there are more than five items and the right arrow button was clicked', () => {
   component.state().data = [{id: 1}, {id: 2}, {id: 3}, {id: 4}, {id: 5}, {id: 6}, {id: 7}];
   expect(component.state().itemStart).toBe(1);
   component.find('.product-right-arrow').simulate('click');

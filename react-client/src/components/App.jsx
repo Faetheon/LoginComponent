@@ -1,4 +1,5 @@
 import React from 'react';
+import Login from './Login.jsx';
 import Item from './Item.jsx';
 
 class App extends React.Component {
@@ -46,6 +47,7 @@ class App extends React.Component {
   render() {
     return (
       <div>
+        <Login />
         <div className='num-of-viewed-items'>You are viewing items {this.state.itemStart + '-' + this.state.itemEnd} out of {this.state.data.length} items.</div>
         <div className='product-carousel'>
           <button className='product-left-arrow' onClick={(e) => {this.handleArrowButtonClick(false)}}>{'<'}</button>
