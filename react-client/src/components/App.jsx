@@ -1,66 +1,114 @@
 import React from 'react';
+import {BrowserRouter as Router, Route, Link} from 'react-router-dom';
+
 import Login from './Login.jsx';
-import Item from './Item.jsx';
+import Signup from './Signup.jsx';
+import Logout from './Logout.jsx';
 
 class App extends React.Component {
   constructor() {
     super();
 
     this.state = {
-      data: [],
-      itemStart: 1,
-      itemEnd: 1
+      username: '',
+      user_email: '',
+      message: '',
+      isLoggedIn: false
     }
 
-    this.handleArrowButtonClick = this.handleArrowButtonClick.bind(this);
+    this.handleChange = this.handleChange.bind(this);
+    this.handleLogin = this.handleLogin.bind(this);
+    this.handleSignup = this.handleSignup.bind(this);
+    this.handleLogout = this.handleLogout.bind(this);
   }
 
   componentDidMount() {
-    fetch('http://localhost:3001/products')
+    fetch('http://localhost:3001/checkForCookie')
       .then(body => body.json())
-      .then(results => this.setState({
-        data: results,
-        itemEnd: results.length >= 5 ? 5 : results.length
-      }))
-      .catch((err) => {if(err) throw err});
-  }
-
-  handleArrowButtonClick(bool) {
-    if (bool) {
-      this.setState({
-        itemStart: this.state.itemStart < this.state.data.length - 4 ? this.state.itemStart + 5 : this.state.itemStart,
-        itemEnd: this.state.itemStart + 9 < this.state.data.length ? this.state.itemStart + 9 : this.state.data.length
+      .then(parsedBody => {
+        this.setState({isLoggedIn: parsedBody.isLoggedIn, message: parsedBody.message})
+      })
+      .catch((err) => {
+        console.log(err);
       });
-    } else if (!bool) {
-      this.setState({
-        itemStart: this.state.itemStart >= 6 ? this.state.itemStart - 5 : 1,
-        itemEnd: this.state.itemEnd >= 10 ? this.state.itemEnd - 5 : this.state.data.length < 5 ? this.state.data.length : 5
+  }
+  
+  handleChange(e) {
+    this.setState({message: ''});
+    if (e.target.name === 'username') {
+      this.setState({username: e.target.value});
+    } else if (e.target.name === 'user_email') {
+      this.setState({user_email: e.target.value});
+    }
+  }
+  
+  handleLogin(e) {
+    e.preventDefault();
+    if (e.target.username.value.length > 0 && e.target.password.value.length > 0) {
+      this.setState({username: e.target.username.value});
+      fetch(`http://localhost:3001/login/${e.target.username.value}/${e.target.password.value}`)
+        .then(data => data.json())
+        .then(data => {
+          this.setState({isLoggedIn: data.isLoggedIn, message: data.message});
+        })
+        .catch(err => {
+          return;
+        });
+      e.target.username.value = '';
+      e.target.password.value = '';
+    } else {
+      this.setState({message: 'Please input both a username and password.'});
+    }
+  }
+  
+  handleLogout() {
+    // Logs the user out and clears auth cookie
+    fetch(`http://localhost:3001/logout/${this.state.username}`)
+      .then(data => data.json())
+      .then(data => {
+        this.setState({username: undefined, user_email: undefined});
+        this.setState({isLoggedIn: data.isLoggedIn, message: data.message});
+      })
+      .catch(err => {
+        if (err) throw err;
+      });
+  }
+  
+  handleSignup(e) {
+    e.preventDefault();
+    // Checks to see if the email is a valid gmail account and that the password and username are longer than 0
+    if (e.target.username.value.length > 0 && /\w*\w@gmail.com/.test(e.target.user_email.value) && e.target.password.value.length > 0) {
+      fetch(`http://localhost:3001/signup/${e.target.username.value}/${e.target.user_email.value}/${e.target.password.value}`)
+      .then(data => data.json())
+      .then(data => {
+        this.setState({isLoggedIn: data.isLoggedIn, message: data.message});
+      }).catch(err => {
+        console.log(err);
       });
     } else {
-      this.setState({
-        itemStart: this.state.itemStart >= 6 ? this.state.itemStart - 5 : 1,
-        itemEnd: this.state.itemEnd - ((this.state.data.length + 1) - this.state.itemStart)
-      });
+      this.setState({message: 'Not a valid email'});
     }
+    e.target.username.value = '';
+    e.target.user_email.value = '';
+    e.target.password.value = '';
   }
   
   render() {
     return (
-      <div>
-        <Login />
-        <div className='num-of-viewed-items'>You are viewing items {this.state.itemStart + '-' + this.state.itemEnd} out of {this.state.data.length} items.</div>
-        <div className='product-carousel'>
-          <button className='product-left-arrow' onClick={(e) => {this.handleArrowButtonClick(false)}}>{'<'}</button>
-          <div className='item-container'>
-            {
-              this.state.data.slice(this.state.itemStart - 1, this.state.itemEnd).map((product, index) => {   
-                return <Item data={product} key={product.id}/>  
-              })
-            }
-          </div>
-          <button className='product-right-arrow' onClick={(e) => {this.handleArrowButtonClick(true)}}>{'>'}</button>
+      <Router>
+        <div>
+          <Route path='/' exact render={() => (
+            <div>
+              Hello everyone!
+              Login <Link to='/login'>here</Link>!
+            </div>
+          )} />
+          <Route path='/login' render={() => (<Login handleLogin={this.handleLogin} handleChange={this.handleChange} username={this.state.username}/>)} />
+          <Route path='/signup' render={() => (<Signup handleSignup={this.handleSignup} handleChange={this.handleChange}/>)} />
+          <Route path='/logout' render={() => (<Logout handleLogout={this.handleLogout} username={this.state.username} user_email={this.state.user_email}/>)} />
+          <p>{this.state.message}</p>
         </div>
-      </div>
+      </Router>
     )
   }
 }
