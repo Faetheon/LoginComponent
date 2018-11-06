@@ -38,7 +38,7 @@ app.get('/products', (req, res) => {
 
 app.get('/signup/:username/:user_email/:password', (req, res) => {
   sequelize.query(`SELECT username FROM users WHERE username='${req.params.username}'`)
-    .then((data) => {
+  .then((data) => {
       if (data[0].length) {
         if (data[0][0].username === req.params.username) {
           res.status(200).send({isLoggedIn: false, message: 'User already exists!'});
@@ -46,7 +46,7 @@ app.get('/signup/:username/:user_email/:password', (req, res) => {
       } else {
         sequelize.query(`INSERT INTO users (username, user_email, password) VALUES ('${req.params.username}', '${req.params.user_email}', '${req.params.password}');`)
           .then(() => {
-            res.cookie(req.params.username, true);
+            res.cookie('isLoggedIn', true);
             res.status(201).send({isLoggedIn: true, message: 'Welcome!'});
           })
           .catch((err) => {
@@ -63,38 +63,46 @@ app.get('/signup/:username/:user_email/:password', (req, res) => {
         throw err;
       }
     });
-});
-
+  });
+  
 app.get('/login/:username/:password', (req, res) => {
   let params = req.params;
-  if (req.cookies[params.username]) {
+  sequelize.query(`SELECT username, password FROM users WHERE username='${params.username}'`)
+  .then((data) => {
+    console.log(data[0].length);
+      if (data[0].length) {
+        if (data[0][0].username !== params.username || data[0][0].password !== params.password) {
+          res.status(200).send({isLoggedIn: false, message: 'Incorrrect username or password!'});
+        } else {
+          res.status(200).send({isLoggedIn: true, message: 'Welcome back!'});
+        }
+      } else {
+        res.status(200).send({isLoggedIn: false, message: 'User does not exist.'});
+      }
+    })
+    .catch((err) => {
+      if (err) {
+        res.status(500).send();
+        throw err;
+      }
+    });
+});
+
+app.get('/checkForCookie', (req, res) => {
+  if (req.cookies.isLoggedIn) {
     res.status(200).send({isLoggedIn: true, message: 'Welcome back!'});
   } else {
-    sequelize.query(`SELECT username, password FROM users WHERE username='${params.username}'`)
-      .then((data) => {
-        console.log(data[0].length);
-        if (data[0].length) {
-          if (data[0][0].username !== params.username || data[0][0].password !== params.password) {
-            res.status(200).send({isLoggedIn: false, message: 'Incorrrect username or password!'});
-          } else {
-            res.status(200).send({isLoggedIn: true, message: 'Welcome back!'});
-          }
-        } else {
-          res.status(200).send({isLoggedIn: false, message: 'User does not exist.'});
-        }
-      })
-      .catch((err) => {
-        if (err) {
-          res.status(500).send();
-          throw err;
-        }
-      });
+    res.status(200).send({isLoggedIn: true, message: ''});
   }
 });
 
 app.get('/logout/:username', (req, res) => {
   res.clearCookie(req.params.username);
   res.status(200).send({isLoggedIn: false, message: 'See you later!'});
+});
+
+app.get('/*', (req, res) => {
+  res.status(304).send(__dirname + '/../react-client/dist/index.html');
 });
 
 app.listen(PORT, () => {
