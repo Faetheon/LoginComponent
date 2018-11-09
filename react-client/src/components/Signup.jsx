@@ -8,8 +8,8 @@ const Signup = withRouter(({handleChange, handleSignup, user_email, username, hi
       Email: <input type='text' name='user_email' value={user_email} onChange={handleChange} />
       Password: <input type='text' name='password' />
       <input type='submit'></input>
+      <div>Already have an account? <Link to='/login'>Login</Link></div>
     </form>
-    <div>Already have an account? <Link to='/login'>Login</Link></div>
   </div>
 ));
 

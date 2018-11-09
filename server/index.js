@@ -1,9 +1,11 @@
+require('dotenv').config();
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const Sequelize = require('sequelize');
 
-const sequelize = new Sequelize('recommended_products', 'nathan', 'student', {
-  host: 'localhost',
+const dbUrl = process.env.DB_URL;
+
+const sequelize = new Sequelize(dbUrl, {
   dialect: 'postgres'
 });
 
@@ -17,24 +19,6 @@ app.use((req, res, next) => {
   next();
 });
 app.use(cookieParser());
-
-app.get('/products', (req, res) => {
-  sequelize.authenticate()
-  .then(() => {
-    console.log('Connection has been established successfully.');
-    })
-    .catch(err => {
-      console.error('Unable to connect to the database: ', err);
-      res.status(500).send();
-    });
-    sequelize.query('SELECT * FROM products ORDER BY id', {type: sequelize.QueryTypes.SELECT})
-    .then(data => {
-      res.status(200).send(JSON.stringify(data));
-    })
-    .catch(err => {
-      if (err) throw err;
-    });
-});
 
 app.get('/signup/:username/:user_email/:password', (req, res) => {
   sequelize.query(`SELECT username FROM users WHERE username='${req.params.username}'`)
@@ -69,7 +53,6 @@ app.get('/login/:username/:password', (req, res) => {
   let params = req.params;
   sequelize.query(`SELECT username, password FROM users WHERE username='${params.username}'`)
   .then((data) => {
-    console.log(data[0].length);
       if (data[0].length) {
         if (data[0][0].username !== params.username || data[0][0].password !== params.password) {
           res.status(200).send({isLoggedIn: false, message: 'Incorrrect username or password!'});
